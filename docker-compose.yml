@@ -151,7 +151,7 @@ services:
       - "8888:8888"  # Prometheus metrics endpoint (for healthchecks/monitoring)
     volumes:
       - ./otel-config.yaml:/etc/otel-collector-config.yaml:ro
-    command: ["--config", "/etc/otel-collector-config.yaml"]
+    command: ["--config", "/etc/otel-collector-config.yaml", "--log-level=debug"]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/metrics" ]
       start_period: 30s
