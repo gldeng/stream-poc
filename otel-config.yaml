@@ -1,27 +1,27 @@
 receivers:
   otlp:
     protocols:
-      http:
-      grpc:
+      http: {}  # Ensure these are valid YAML objects
+      grpc: {}
 
 processors:
-  batch:
+  batch: {}
 
 exporters:
   kafka:
     brokers: ["broker:9092"]
     protocol_version: "2.0.0"    # Specify Kafka protocol version
-    topic: "otlp-metrics"       # Kafka topic to publish metrics to
-    encoding: "otlp_proto"      # Format for exporting (e.g., otlp_proto)
-  logging:
-    logLevel: debug            # This will print all the received metrics in debug level
+    topic: "otlp-metrics"        # Kafka topic to publish metrics to
+    encoding: "otlp_proto"       # Format for exporting (e.g., otlp_proto)
+  debug:
+    verbosity: "detailed"        # This prints detailed output of the received metrics
 
 service:
   telemetry:
     logs:
-      level: debug
+      level: debug             # Sets the Collector's log level to debug
   pipelines:
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, kafka]
+      exporters: [debug, kafka]  # Both exporting to Kafka and printing metrics via debug exporter
