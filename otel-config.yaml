@@ -11,7 +11,7 @@ processors:
 
 exporters:
   kafka:
-    brokers: ["host.docker.internal:9092"]
+    brokers: ["broker:29092"]
     protocol_version: "2.0.0"    # Specify Kafka protocol version
     topic: "otlp-metrics"        # Kafka topic to publish metrics to
     encoding: "otlp_proto"       # Format for exporting (e.g., otlp_proto)
