@@ -15,6 +15,9 @@ exporters:
     encoding: "otlp_proto"      # Format for exporting (e.g., otlp_proto)
   
 service:
+  telemetry:
+    logs:
+      level: "debug"
   pipelines:
     metrics:
       receivers: [otlp]
