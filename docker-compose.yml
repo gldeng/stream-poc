@@ -143,15 +143,17 @@ services:
       retries: 5
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
+    image: otel/opentelemetry-collector:latest
     container_name: otel-collector
     ports:
       - "4317:4317"  # OTLP gRPC receiver (commonly used for telemetry data)
       - "4318:4318"  # OTLP HTTP receiver (if enabled in your configuration)
       - "8888:8888"  # Prometheus metrics endpoint (for healthchecks/monitoring)
     volumes:
-      - ./otel-config.yaml:/etc/otel-collector-config.yaml:ro
-    command: ["--config", "/etc/otel-collector-config.yaml"]
+      - ./otel-config.yaml:/etc/otel-config.yaml
+    command: ["--config", "/etc/otel-config.yaml"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/metrics" ]
       start_period: 30s
