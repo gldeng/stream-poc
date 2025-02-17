@@ -150,7 +150,7 @@ services:
       - "4318:4318"  # OTLP HTTP receiver (if enabled in your configuration)
       - "8888:8888"  # Prometheus metrics endpoint (for healthchecks/monitoring)
     volumes:
-      - ./otel-config.yaml:/etc/otel-collector-config.yaml
+      - ./otel-config.yaml:/etc/otel-collector-config.yaml:ro
     command: ["--config", "/etc/otel-collector-config.yaml"]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8888/metrics" ]
