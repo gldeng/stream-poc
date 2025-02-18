@@ -111,6 +111,22 @@ def run(
       output['timestamp'] = record.timestamp
     return output
 
+  def convert_to_kafka_writable(token_usage: TokenUsage) -> str:
+    # Convert TokenUsage object to a string/bytes format that Kafka can handle
+    import json
+    data = {
+        'operation_name': token_usage.operation_name,
+        'request_model': token_usage.request_model,
+        'response_model': token_usage.response_model,
+        'system': token_usage.system,
+        'token_type': token_usage.token_type,
+        'server_address': token_usage.server_address,
+        'server_port': token_usage.server_port,
+        'input_tokens': token_usage.input_tokens,
+        'output_tokens': token_usage.output_tokens
+    }
+    return json.dumps(data).encode('utf-8')
+
   with beam.Pipeline(options=pipeline_options) as pipeline:
 
     raw_data_token_usage_col = (
@@ -124,6 +140,7 @@ def run(
     _ = (
       raw_data_token_usage_col
       | beam.FlatMap(lambda data: extract_token_usage(data))
+      | beam.Map(convert_to_kafka_writable)
       | WriteToKafka(
             producer_config={'bootstrap.servers': bootstrap_servers},
             topic=output_topic))
