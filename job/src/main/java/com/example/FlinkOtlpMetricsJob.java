@@ -39,7 +39,10 @@ public class FlinkOtlpMetricsJob {
 
         // Process the Protobuf stream
         DataStream<String> jsonStream = protobufStream.map(bytes -> {
-
+            // Log bytes in base64 format
+            String base64Data = java.util.Base64.getEncoder().encodeToString(bytes);
+            System.out.println("Received protobuf message (base64): " + base64Data);
+            
             // Deserialize Protobuf to an OpenTelemetry Span object
             Span span = Span.parseFrom(bytes);
 
