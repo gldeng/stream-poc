@@ -18,76 +18,40 @@
     </properties>
 
     <dependencies>
-        <!-- Apache Flink Streaming API -->
+
+        <!-- Flink Streaming API -->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java</artifactId>
-            <version>${flink.version}</version>
+            <artifactId>flink-streaming-java_2.12</artifactId>
+            <version>1.20.1</version> <!-- Use the latest Flink version -->
         </dependency>
-        
-        <!-- Apache Flink Kafka Connector -->
+
+        <!-- Flink Kafka Connector -->
         <dependency>
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-connector-kafka</artifactId>
-            <version>${flink.connector.version}</version>
+            <version>1.20.1</version>
         </dependency>
-        
-<!--        &lt;!&ndash; OpenTelemetry Protobuf definitions &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>io.opentelemetry.proto</groupId>-->
-<!--            <artifactId>opentelemetry-proto</artifactId>-->
-<!--            <version>${opentelemetry.proto.version}</version>-->
-<!--        </dependency>-->
-        
-        <!-- Protobuf Java Runtime -->
+
+        <!-- Protobuf library -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>3.17.3</version>
-        </dependency>
-        
-        <!-- Protobuf Java Util -->
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java-util</artifactId>
-            <version>3.17.3</version>
-        </dependency>
-        
-        <!-- Logging (optional) -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.30</version>
+            <version>3.24.3</version>
         </dependency>
 
-        <!-- JUnit 5 for testing -->
+        <!-- OpenTelemetry Protobuf -->
         <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>5.7.0</version>
-            <scope>test</scope>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-proto</artifactId>
+            <version>1.7.1-alpha</version> <!-- Use the appropriate version -->
         </dependency>
 
-        <!-- Flink test dependencies -->
+        <!-- JSON library (e.g., Jackson for serialization) -->
         <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-test-utils</artifactId>
-            <version>${flink.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-runtime</artifactId>
-            <version>${flink.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java</artifactId>
-            <version>${flink.version}</version>
-            <type>test-jar</type>
-            <scope>test</scope>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.2</version>
         </dependency>
     </dependencies>
 

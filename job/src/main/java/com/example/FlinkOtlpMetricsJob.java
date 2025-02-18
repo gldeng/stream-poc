@@ -1,64 +1,59 @@
 package com.example;
 
-import com.google.protobuf.util.JsonFormat;
-import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.serialization.AbstractDeserializationSchema;
-import org.apache.flink.streaming.api.datastream.DataStream;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.proto.trace.v1.Span;
+import org.apache.flink.api.common.serialization.SimpleStringSchema;
+import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
+import org.apache.flink.streaming.api.datastream.DataStream;
 
-import java.io.IOException;
 import java.util.Properties;
 
 public class FlinkOtlpMetricsJob {
 
     public static void main(String[] args) throws Exception {
-        // Create Flink execution environment
+
+        // Set up Flink execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        // Configure Kafka consumer properties
-        Properties kafkaProps = new Properties();
-        kafkaProps.setProperty("bootstrap.servers", "host.docker.internal:9092");
-        kafkaProps.setProperty("group.id", "flink-metrics-consumer");
+        // Kafka consumer properties
+        Properties kafkaConsumerProps = new Properties();
+        kafkaConsumerProps.setProperty("bootstrap.servers", "host.docker.internal:9092");
+        kafkaConsumerProps.setProperty("group.id", "flink-opentelemetry-group");
 
-        // Create Kafka consumer for the "otlp-metrics" topic
-        FlinkKafkaConsumer<ExportMetricsServiceRequest> kafkaConsumer = new FlinkKafkaConsumer<>(
-                "otlp-metrics",
-                new OtlpMetricsDeserializer(),
-                kafkaProps
-        );
-        // Start reading from the beginning of the topic
-        kafkaConsumer.setStartFromEarliest();
+        // Kafka producer properties
+        Properties kafkaProducerProps = new Properties();
+        kafkaProducerProps.setProperty("bootstrap.servers", "host.docker.internal:9092");
 
-        // Add the Kafka consumer as a source
-        DataStream<ExportMetricsServiceRequest> metricsStream = env.addSource(kafkaConsumer);
+        // Create Kafka consumer to read Protobuf messages
+        String inputTopic = "otlp-metrics";
+        DataStream<byte[]> protobufStream = env
+                .addSource(new FlinkKafkaConsumer<>(inputTopic, new ProtobufDeserializationSchema(), kafkaConsumerProps));
 
-        metricsStream.map(new MapFunction<ExportMetricsServiceRequest, String>() {
-            @Override
-            public String map(ExportMetricsServiceRequest value) throws Exception {
-                // Convert Protobuf message to JSON
-                return JsonFormat.printer()
-                        .includingDefaultValueFields()
-                        .print(value);
-            }
-        });
+        // Process the Protobuf stream
+        DataStream<String> jsonStream = protobufStream.map(bytes -> {
 
-        // Simple processing: print out the metrics
-        metricsStream.print();
+            // Deserialize Protobuf to an OpenTelemetry Span object
+            Span span = Span.parseFrom(bytes);
 
-        // Execute the Flink job
-        env.execute("Flink OTLP Metrics Job");
-    }
+            // Transform the Span object to JSON using Jackson
+            ObjectMapper objectMapper = new ObjectMapper();
 
-    /**
-     * Custom deserialization schema for OTLP metrics messages.
-     */
-    public static class OtlpMetricsDeserializer extends AbstractDeserializationSchema<ExportMetricsServiceRequest> {
-        @Override
-        public ExportMetricsServiceRequest deserialize(byte[] message) throws IOException {
-            // Deserialize using the generated protobuf parseFrom method
-            return ExportMetricsServiceRequest.parseFrom(message);
-        }
+            // You can customize the logic here (e.g., extract necessary fields)
+            return objectMapper.writeValueAsString(span);
+        }).returns(TypeInformation.of(String.class)); // Output type is String
+
+        // Create Kafka producer to write JSON strings
+        String outputTopic = "otlp-metrics-json";
+        jsonStream.addSink(new FlinkKafkaProducer<>(
+                outputTopic,
+                new SimpleStringSchema(),
+                kafkaProducerProps
+        ));
+
+        // Execute the Flink pipeline
+        env.execute("OpenTelemetry Flink Processor");
     }
 } 
