@@ -145,6 +145,7 @@ def run(
       raw_data_token_usage_col
       | beam.FlatMap(lambda data: extract_token_usage(data))
       | beam.Map(convert_to_kafka_writable)
+      | beam.WithCoders(beam.coders.KvCoder(beam.coders.BytesCoder(), beam.coders.BytesCoder()))
       | WriteToKafka(
             producer_config={'bootstrap.servers': bootstrap_servers},
             topic=output_topic))
