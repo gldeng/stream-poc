@@ -15,6 +15,11 @@ exporters:
     protocol_version: "2.0.0"    # Specify Kafka protocol version
     topic: "otlp-metrics"        # Kafka topic to publish metrics to
     encoding: "otlp_proto"       # Format for exporting (e.g., otlp_proto)
+  kafka/json:
+    brokers: ["broker:29092"]
+    protocol_version: "2.0.0"    # Specify Kafka protocol version
+    topic: "otlp-metrics-json"   # Separate topic for JSON formatted metrics
+    encoding: "otlp_json"        # Format for exporting as JSON
   debug:
     verbosity: "detailed"        # This prints detailed output of the received metrics
 
@@ -26,4 +31,4 @@ service:
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [debug, kafka]  # Both exporting to Kafka and printing metrics via debug exporter
+      exporters: [debug, kafka, kafka/json]  # Added the new JSON exporter to the pipeline
