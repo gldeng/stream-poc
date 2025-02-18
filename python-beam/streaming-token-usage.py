@@ -111,9 +111,10 @@ def run(
       output['timestamp'] = record.timestamp
     return output
 
-  def convert_to_kafka_writable(token_usage: TokenUsage) -> str:
-    # Convert TokenUsage object to a string/bytes format that Kafka can handle
+  def convert_to_kafka_writable(token_usage: TokenUsage) -> tuple:
     import json
+    import uuid
+    
     data = {
         'operation_name': token_usage.operation_name,
         'request_model': token_usage.request_model,
@@ -125,7 +126,10 @@ def run(
         'input_tokens': token_usage.input_tokens,
         'output_tokens': token_usage.output_tokens
     }
-    return json.dumps(data).encode('utf-8')
+    # Create a unique key by combining operation_name with a UUID
+    key = f"{token_usage.operation_name}-{str(uuid.uuid4())}".encode('utf-8')
+    value = json.dumps(data).encode('utf-8')
+    return key, value
 
   with beam.Pipeline(options=pipeline_options) as pipeline:
 
