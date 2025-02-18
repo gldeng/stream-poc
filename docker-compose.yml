@@ -165,6 +165,7 @@ services:
 
   jobmanager:
     image: apache/flink:1.19.2-java17
+    platform: linux/amd64
     hostname: jobmanager
     container_name: jobmanager
     ports:
@@ -190,6 +191,7 @@ services:
 
   taskmanager:
     image: apache/flink:1.19.2-java17
+    platform: linux/amd64
     hostname: taskmanager
     container_name: taskmanager
     depends_on:
