@@ -159,13 +159,13 @@ if __name__ == '__main__':
   parser.add_argument(
       '--bootstrap_servers',
       dest='bootstrap_servers',
-      required=True,
+      default='broker:29092',
       help='Bootstrap servers for the Kafka cluster. Should be accessible by '
       'the runner')
   parser.add_argument(
       '--input-topic',
       dest='input_topic',
-      default='raw-token-usage',
+      default='otlp-metrics-json',
       help='Kafka topic to read from')
   parser.add_argument(
       '--output-topic',

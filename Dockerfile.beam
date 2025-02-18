@@ -1,0 +1,13 @@
+FROM apache/beam_python3.8_sdk:2.46.0  # Beam SDK worker for Python 3.8 and Beam 2.46.0
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the pipeline code into the container
+COPY ./python-beam/streaming-token-usage.py /app/
+
+# Install any additional dependencies here
+RUN pip install apache-beam[flink,kafka]
+
+# Set the default command to run the pipeline
+CMD ["python", "streaming-token-usage.py"]

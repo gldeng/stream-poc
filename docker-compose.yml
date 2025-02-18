@@ -214,3 +214,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+
+  beam-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.beam
+    depends_on:
+      - broker
+      - jobmanager
+      - taskmanager
