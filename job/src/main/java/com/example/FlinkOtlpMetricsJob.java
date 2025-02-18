@@ -14,18 +14,23 @@ import java.util.Properties;
 public class FlinkOtlpMetricsJob {
 
     public static void main(String[] args) throws Exception {
+        if (args.length < 1) {
+            throw new IllegalArgumentException("Please provide Kafka broker address as argument");
+        }
+        String kafkaBroker = args[0];
 
         // Set up Flink execution environment
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
         // Kafka consumer properties
         Properties kafkaConsumerProps = new Properties();
-        kafkaConsumerProps.setProperty("bootstrap.servers", "host.docker.internal:9092");
+        kafkaConsumerProps.setProperty("bootstrap.servers", kafkaBroker);
         kafkaConsumerProps.setProperty("group.id", "flink-opentelemetry-group");
 
         // Kafka producer properties
         Properties kafkaProducerProps = new Properties();
-        kafkaProducerProps.setProperty("bootstrap.servers", "host.docker.internal:9092");
+        kafkaProducerProps.setProperty("bootstrap.servers", kafkaBroker);
+        kafkaProducerProps.setProperty("group.id", "flink-opentelemetry-group-producer");
 
         // Create Kafka consumer to read Protobuf messages
         String inputTopic = "otlp-metrics";
