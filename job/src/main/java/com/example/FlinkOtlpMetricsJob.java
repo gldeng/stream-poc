@@ -1,17 +1,28 @@
 package com.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
+import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.util.Collector;
+import com.google.protobuf.InvalidProtocolBufferException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 public class FlinkOtlpMetricsJob {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
@@ -38,23 +49,36 @@ public class FlinkOtlpMetricsJob {
                 .addSource(new FlinkKafkaConsumer<>(inputTopic, new ProtobufDeserializationSchema(), kafkaConsumerProps));
 
         // Process the Protobuf stream
-        DataStream<String> jsonStream = protobufStream.map(bytes -> {
-            // Log bytes in base64 format
-            String base64Data = java.util.Base64.getEncoder().encodeToString(bytes);
-            System.out.println("Received protobuf message (base64): " + base64Data);
-            
-            // Deserialize Protobuf to an OpenTelemetry Span object
-            Span span = Span.parseFrom(bytes);
+        DataStream<String> jsonStream = protobufStream.flatMap(
+                new FlatMapFunction<byte[], String>() {
+                    @Override
+                    public void flatMap(byte[] bytes, Collector<String> out) throws Exception {
+                        // Log bytes in base64 format
+                        String base64Data = java.util.Base64.getEncoder().encodeToString(bytes);
+                        System.out.println("Received protobuf message (base64): " + base64Data);
 
-            // Transform the Span object to JSON using Jackson
-            ObjectMapper objectMapper = new ObjectMapper();
-
-            // You can customize the logic here (e.g., extract necessary fields)
-            return objectMapper.writeValueAsString(span);
-        }).returns(TypeInformation.of(String.class)); // Output type is String
+                        try {
+                            ExportMetricsServiceRequest request = ExportMetricsServiceRequest.parseFrom(bytes);
+                            request.getResourceMetricsList().stream()
+                                    .map(resourceMetric -> {
+                                        try {
+                                            return OBJECT_MAPPER.writeValueAsString(resourceMetric);
+                                        } catch (JsonProcessingException e) {
+                                            System.err.println("Failed to serialize metric: " + e.getMessage());
+                                            return null;
+                                        }
+                                    })
+                                    .filter(json -> json != null)
+                                    .forEach(out::collect);
+                        } catch (InvalidProtocolBufferException e) {
+                            System.err.println("Failed to parse protobuf message: " + e.getMessage());
+                        }
+                    }
+                }
+        );
 
         // Create Kafka producer to write JSON strings
-        String outputTopic = "otlp-metrics-json";
+        String outputTopic = "otlp-metrics-processed";
         jsonStream.addSink(new FlinkKafkaProducer<>(
                 outputTopic,
                 new SimpleStringSchema(),
