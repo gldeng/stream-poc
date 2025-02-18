@@ -6,12 +6,12 @@ WORKDIR /app
 # Copy the pipeline code into the container
 COPY ./python-beam/streaming-token-usage.py /app/
 
-# Install Java (e.g., OpenJDK 8)
-RUN apt-get update && apt-get install -y openjdk-8-jdk && \
+# Install Java (e.g., OpenJDK 11)
+RUN apt-get update && apt-get install -y openjdk-11-jdk && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set JAVA_HOME
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Install any additional dependencies here
