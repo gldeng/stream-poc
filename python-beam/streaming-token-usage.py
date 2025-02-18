@@ -1,11 +1,34 @@
 import logging
 import sys
+from typing import List
 
 import apache_beam as beam
 from apache_beam.io.kafka import ReadFromKafka
 from apache_beam.io.kafka import WriteToKafka
 from apache_beam.options.pipeline_options import GoogleCloudOptions
 from apache_beam.options.pipeline_options import PipelineOptions
+
+
+class TokenUsage(object):
+  def __init__(self, 
+               operation_name: str,
+               request_model: str,
+               response_model: str,
+               system: str,
+               token_type: str,
+               server_address: str,
+               server_port: int,
+               input_tokens: float,
+               output_tokens: float) -> None:
+    self.operation_name = operation_name
+    self.request_model = request_model
+    self.response_model = response_model
+    self.system = system
+    self.token_type = token_type
+    self.server_address = server_address
+    self.server_port = server_port
+    self.input_tokens = input_tokens
+    self.output_tokens = output_tokens
 
 
 def run(
@@ -42,7 +65,7 @@ def run(
         output['server_port'] = attribute['value']['intValue']
     return output
 
-  def extract_token_usage(data):
+  def extract_token_usage(data) -> List[TokenUsage]:
     output = []
     resourceMetrics = data['resourceMetrics']
     for resourceMetric in resourceMetrics:
@@ -65,7 +88,7 @@ def run(
             elif extracted['token_type'] == "output":
               extracted['input_tokens'] = input_tokens
               extracted['output_tokens'] = dataPoint['sum']
-              output.append(extracted)
+              output.append(TokenUsage(**extracted))
     return output
 
   def convert_kafka_record_to_dictionary(record):
