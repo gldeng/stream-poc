@@ -37,6 +37,8 @@ public class FlinkOtlpMetricsJob {
         Properties kafkaConsumerProps = new Properties();
         kafkaConsumerProps.setProperty("bootstrap.servers", kafkaBroker);
         kafkaConsumerProps.setProperty("group.id", "flink-opentelemetry-group");
+        kafkaConsumerProps.setProperty("auto.offset.reset", "earliest"); // Start reading from the beginning if no offset is found
+        kafkaConsumerProps.setProperty("enable.auto.commit", "true");
 
         // Kafka producer properties
         Properties kafkaProducerProps = new Properties();
@@ -45,8 +47,12 @@ public class FlinkOtlpMetricsJob {
 
         // Create Kafka consumer to read Protobuf messages
         String inputTopic = "otlp-metrics";
+        System.out.println("Starting Kafka consumer for topic: " + inputTopic);
         DataStream<byte[]> protobufStream = env
                 .addSource(new FlinkKafkaConsumer<>(inputTopic, new ProtobufDeserializationSchema(), kafkaConsumerProps));
+
+        // Add a print() operator to see if we're receiving any data
+        protobufStream.print("Raw protobuf data");
 
         // Process the Protobuf stream
         DataStream<String> jsonStream = protobufStream.flatMap(
