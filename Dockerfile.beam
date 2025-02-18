@@ -10,5 +10,13 @@ COPY ./python-beam/streaming-token-usage.py /app/
 # Install any additional dependencies here
 RUN pip install apache-beam[flink,kafka]
 
+# Set environment variables for Kafka configuration
+ENV BOOTSTRAP_SERVERS="broker:29092"
+ENV INPUT_TOPIC="otlp-metrics-json"
+ENV OUTPUT_TOPIC="token-usage"
+
 # Set the default command to run the pipeline
-CMD ["python", "streaming-token-usage.py"]
+CMD ["python", "streaming-token-usage.py", \
+     "--bootstrap_servers=${BOOTSTRAP_SERVERS}", \
+     "--input-topic=${INPUT_TOPIC}", \
+     "--output-topic=${OUTPUT_TOPIC}"]
