@@ -7,11 +7,10 @@ WORKDIR /app
 COPY ./python-beam/streaming-token-usage.py /app/
 
 # Install Java (e.g., OpenJDK 11)
-RUN apt-get update && apt-get install -y openjdk-11-jdk && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y sudo apt install default-jre
 
 # Set JAVA_HOME
-ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+ENV JAVA_HOME="/usr/lib/jvm/default-java"
 ENV PATH=$JAVA_HOME/bin:$PATH
 
 # Install any additional dependencies here
