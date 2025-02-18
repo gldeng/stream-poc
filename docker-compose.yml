@@ -164,7 +164,7 @@ services:
       retries: 3
 
   jobmanager:
-    image: apache/flink:1.19.2-java17
+    image: apache/flink:1.18.1-java17
     platform: linux/amd64
     hostname: jobmanager
     container_name: jobmanager
@@ -190,7 +190,7 @@ services:
       start_period: 30s
 
   taskmanager:
-    image: apache/flink:1.19.2-java17
+    image: apache/flink:1.18.1-java17
     platform: linux/amd64
     hostname: taskmanager
     container_name: taskmanager
