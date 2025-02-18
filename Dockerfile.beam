@@ -1,5 +1,4 @@
-# Beam SDK worker for Python 3.8 and Beam 2.46.0
-FROM apache/beam_python3.8_sdk:2.46.0
+FROM apache/beam_python3.11_sdk:2.62.0
 
 # Set the working directory in the container
 WORKDIR /app
