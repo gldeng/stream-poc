@@ -1,0 +1,27 @@
+# beam/Dockerfile-python-harness
+FROM --platform=linux/amd64 apache/beam_python3.10_sdk:2.56.0
+
+ARG BEAM_VERSION
+ENV BEAM_VERSION=${BEAM_VERSION:-2.56.0}
+ENV REPO_BASE_URL=https://repo1.maven.org/maven2/org/apache/beam
+
+# Clean up before starting and combine operations to reduce layers
+RUN set -ex && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    mkdir -p /opt/java && \
+    cd /opt/java && \
+    wget -q https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20.1%2B1/OpenJDK11U-jdk_x64_linux_hotspot_11.0.20.1_1.tar.gz -O temurin.tar.gz && \
+    tar -xzf temurin.tar.gz && \
+    rm temurin.tar.gz && \
+    mv jdk* java-11 && \
+    mkdir -p /opt/apache/beam/jars && \
+    wget ${REPO_BASE_URL}/beam-sdks-java-io-expansion-service/${BEAM_VERSION}/beam-sdks-java-io-expansion-service-${BEAM_VERSION}.jar \
+        --progress=bar:force:noscroll -O /opt/apache/beam/jars/beam-sdks-java-io-expansion-service.jar && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+ENV JAVA_HOME=/opt/java/java-11
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+ENV PYTHONPATH="/app:${PYTHONPATH:-}"
+
+COPY word_len /app/word_len
+# COPY word_count /app/word_count
